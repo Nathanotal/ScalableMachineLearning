@@ -1,0 +1,6 @@
+hopsworks
+joblib
+scikit-learn
+seaborn
+dataframe-image
+faker
