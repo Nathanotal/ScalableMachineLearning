@@ -1,5 +1,5 @@
 # ID 2223 Scalable machine learning and deep learning 🖥️ 
-## Lab 1 (titanic) 🚢:
+## Lab 1 (Titanic) 🚢:
 
 ### Task 1
 The Feature, Training, Online/Batch Inference Pipeline was run for the iris model.
