@@ -83,9 +83,15 @@ def g():
 
     # Get a random person and the predicted survival to inspect the result and use for the confusion matrix
     # (this could be done in batch but for simplicity we do it one at a time)
-    randIndex = y_pred.size-random.randint(0, y_pred.size-1)
-    person = batch_data.iloc[randIndex]
-    survived = y_pred[randIndex]
+    # Get the last last prediction
+    lastIndex = y_pred.size-1
+    person = batch_data.iloc[lastIndex]
+    survived = y_pred[lastIndex]
+    
+    # Spot check
+    # randIndex = y_pred.size-random.randint(0, y_pred.size-1)
+    # person = batch_data.iloc[randIndex]
+    # survived = y_pred[randIndex]
     print("Survived: ", survived)
 
     # Generate an image of the person
