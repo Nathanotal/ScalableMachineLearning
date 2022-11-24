@@ -9,6 +9,15 @@ The [Interactive UI](https://huggingface.co/spaces/Nathanotal/iris) and the [Das
 We were tasked to build a similar serverless system using the [titanic dataset](https://raw.githubusercontent.com/ID2223KTH/id2223kth.github.io/master/assignments/lab1/titanic.csv).
 
 1. The data was cleaned and feature engineered. 
+1.1. Clean the data
+Three columns have missing values: Age, Cabin, Embarked
+Age: A random forest regressor will predict the age based on the other features. (see get_age_model())
+Cabin: Too many missing values to be useful ==> drop feature
+Embarked: Only 2 missing values ==> drop these rows
+Columns deemed not useful for the model: Name, Ticket, Cabin, PassengerId ==> drop features
+1.2. Train a random forest regressor to predict the age based on the other features.
+1.3. Use the model to predict the age of the passengers with null values in the age column.
+1.4. Convert categorical features ("sex" and "embarked") to numerical and convert all column names to lowercase.
 2. A feature pipeline was built which registered the dataset as a feature group was built. There is also an option to generate and make a feature group using synthetic data.
 3. A training pipeline was built which reads the training data from a feature view and trains a machine learning model.
 4. A batch inference pipeline which reads the data and model form hopsworks, tests the model, and generates a prediction history and a confusion matrix was built. This pipeline also includes an option to run the batch inference using synthetic data.
