@@ -10,11 +10,11 @@ We were tasked to build a similar serverless system using the [titanic dataset](
 
 1. The data was cleaned and feature engineered. 
     1. Clean the data
-Three columns have missing values: Age, Cabin, Embarked
-Age: A random forest regressor will predict the age based on the other features. (see get_age_model())
-Cabin: Too many missing values to be useful ==> drop feature
-Embarked: Only 2 missing values ==> drop these rows
-Columns deemed not useful for the model: Name, Ticket, Cabin, PassengerId ==> drop features
+        * Three columns have missing values: Age, Cabin, Embarked
+        * Age: A random forest regressor will predict the age based on the other features. (see get_age_model())
+        * Cabin: Too many missing values to be useful ==> drop feature
+        * Embarked: Only 2 missing values ==> drop these rows
+        * Columns deemed not useful for the model: Name, Ticket, Cabin, PassengerId ==> drop features
     2. Train a random forest regressor to predict the age based on the other features.
     3. Use the model to predict the age of the passengers with null values in the age column.
     4. Convert categorical features ("sex" and "embarked") to numerical and convert all column names to lowercase.
