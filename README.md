@@ -3,11 +3,7 @@
 
 ### Task 1
 The Feature, Training, Online/Batch Inference Pipeline was run for the iris model.
-The interactive UI and the dashboard UI can be found at the links below:
-
-[Interactive UI](https://huggingface.co/spaces/Nathanotal/iris)
-
-[Dashboard UI](https://huggingface.co/spaces/Nathanotal/irisMonitor)
+The [Interactive UI](https://huggingface.co/spaces/Nathanotal/iris) and the [Dashboard UI](https://huggingface.co/spaces/Nathanotal/irisMonitor) can be found at the links below:
 
 ### Task 2
 We were tasked to build a similar serverless system using the [titanic dataset](https://raw.githubusercontent.com/ID2223KTH/id2223kth.github.io/master/assignments/lab1/titanic.csv).
