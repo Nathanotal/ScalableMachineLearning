@@ -220,7 +220,7 @@ def g():
                          "sibsp", "parch", "fare", "embarked"],
             description="Titanic synthetic passenger dataset")
         # Upload the synthetic dataset to the feature store by adding it to the feature group
-        iris_fg.insert(synthetic_df, write_options={"wait_for_job": False})
+        iris_fg.insert(synthetic_df, write_options={"wait_for_job": False}) # overwrite=False, operation="upsert"/"insert"
     else:
         # Download Titanic dataset from the web
         titanic_df = pd.read_csv(
