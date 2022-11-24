@@ -1,0 +1,7 @@
+hopsworks
+joblib
+gradio
+numpy
+pandas
+requests
+scikit-learn
