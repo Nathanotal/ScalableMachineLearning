@@ -27,6 +27,7 @@ def g():
     """
     This function is executed by the modal job
     """
+
     import hopsworks
     import pandas as pd
 
