@@ -8,7 +8,7 @@
 """
 import subprocess
 from transformers import pipeline
-pipe = pipeline(model="Nathanotal/whisper-small-hi")  # change to "your-username/the-name-you-picked"
+pipe = pipeline(model="Nathanotal/whisper-small-v2")  # change to "your-username/the-name-you-picked"
 
 def transcribe(audio):
     text = pipe(audio)["text"]
@@ -169,8 +169,8 @@ gameInterface = gr.Interface(fn=game,
                              gr.Video(label='Next ten seconds'), 
                              gr.Textbox(label='Transcription of next ten seconds'), 
                              "state"],
-                    title="Game",
-                    description="Description of game"
+                    title="Phrase guessing game",
+                    description="1. Paste a link to a youtube video in the \"Link to video\" box and check the checkmark \"Load new video\".\n2. Click \"Submit\". \n3. Uncheck the checkmark \"Load new video\". \n4. Listen to the first five seconds of the video. \n5. Player 1 and 2 guess what is spoken in the next 5 seconds of the video by recording it using the microphone. \n6. Click \"Submit\". \n7. See who made the best matching guess! \n9. Repeat steps 1-7. \n10. Enjoy!"
                     )
 
 gameInterface.launch()
