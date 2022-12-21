@@ -1,0 +1,4 @@
+.conda
+*.csv
+*.txt
+*.exe
