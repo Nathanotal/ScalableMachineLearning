@@ -153,6 +153,13 @@ def getLinksWithoutData(links):
     # Get all links which are not in the data csv file
     linksWithoutData = []
     linksWithData = {}
+    # If there is no apartmentData.csv return 
+    try:
+        with open(f'{PATH}/data/apartmentData.csv', 'r') as f:
+            pass
+    except FileNotFoundError:
+        return links
+    
     with open(f'{PATH}/data/apartmentData.csv', 'r') as f:
         reader = csv.reader(f)
         for row in reader:
