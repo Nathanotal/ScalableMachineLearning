@@ -157,7 +157,7 @@ def getLinksWithoutData(links):
         reader = csv.reader(f)
         for row in reader:
             row = row[0].split(';')
-            link = row[0]
+            link = row[0][2:]
             if link == 'link':
                 continue
             linksWithData[link] = True

@@ -9,10 +9,10 @@ import time
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 HEADERS = ['link', 'area', 'streetName', 'number', 'sqm', 'rooms', 'Slutpris', 'Utropspris', 'Prisutveckling', 'Såld eller borttagen',
-           'Slutpris/m²', 'Dagar på Booli', 'Avgift', 'Bostadstyp', 'Driftskostnad', 'Våning', 'Byggår', 'BRF', 'brfLink', 'Energiklass']
+           'Slutpris/m²', 'Dagar på Booli', 'Avgift', 'Bostadstyp', 'Driftskostnad', 'Våning', 'Byggår', 'BRF', 'brfLink', 'Energiklass', 'agency']
 LOAD_DATA = True
 MAX_WORKERS = min(32, (os.cpu_count() or 1) + 4)
-LINK_SPLIT = 3
+LINK_SPLIT = 1
 
 
 def main():
@@ -24,7 +24,7 @@ def main():
         input('Are you sure you want to scrape all data? Press enter to continue...')
         links = getAllLinks()
         uf.saveLinks(links)
-
+    
     linksLeftToScrape = uf.getLinksWithoutData(links)
 
     getAndWirteData(linksLeftToScrape)
@@ -41,10 +41,11 @@ def getAndWirteData(links):
         # Write the data for each apratment
         print('Getting data from pages...')
         for link in tqdm(links):  # This can't be done in parallell because of 429
-            data = getAttributesFromPage(link)
+            data = getAppartmentsFromPage(link)
             if data is not None:
-                # uf.checkDifferenceInData(data, HEADERS) # Debug
-                uf.writeToCsv(data, writer, HEADERS)
+                for bostad in data:
+                    uf.writeToCsv(bostad, writer, HEADERS)
+                    # uf.checkDifferenceInData(data, HEADERS) # Debug
 
 
 def getAllLinks():
@@ -152,6 +153,7 @@ def getGeneralInfo(soup):
 
     # Get the name and value for each attribute
     data = {}
+    dataToReturn = []
     for attribute in attributes:
         name = attribute.find('div', class_=nameClass).text
         value = attribute.find('div', class_=valueClass).text
@@ -168,20 +170,66 @@ def getGeneralInfo(soup):
                 data[name] = uf.cleanDiff(value)
             case 'Avgift' | 'Driftskostnad':
                 data[name] = uf.cleanAvgift(value)
-            case 'Slutpris/m²':
-                data[name] = uf.cleanPriceSqm(value)
             case 'Sista bud':
                 data['Slutpris'] = uf.cleanPrice(value)
-            case 'Storlek' | 'Tomtstorlek' | 'Upplåtelseform' | 'Sidvisningar' | 'Dagar som snart till salu' | 'Biarea' | 'Boendekostnad' | 'Kvadratmeterpris':
+            case 'Dagar på Booli' | 'Slutpris/m²' | 'Storlek' | 'Tomtstorlek' | 'Upplåtelseform' | 'Sidvisningar' | 'Dagar som snart till salu' | 'Biarea' | 'Boendekostnad' | 'Kvadratmeterpris' | 'Såld eller borttagen':
                 pass
             case _:
                 data[name] = value
+    
+    # Get all other events
+    for index, event in enumerate(getHistory(soup)):
+        newData = data.copy()
+        newData.update(event)
+        if index > 0:
+            newData['Utropspris'] = ''
+            newData['Prisutveckling'] = ''
+        
+        dataToReturn.append(newData)
 
-    return data
+    return dataToReturn
+
+def getHistory(soup):
+    historyItemClass = '_10hNQ DfWRI'
+    priceClass = '-BWPP _38tTw _33jtR'
+    dateClass = '-BWPP _33jtR'
+    agencyClass = '_33jtR -BWPP'
+    price = ''
+    date = ''
+    agency = ''
+    events = []
+    for historyItem in soup.find_all('div', class_=historyItemClass):
+        # Get the price, date, agency
+        try:
+            price = uf.cleanPrice(historyItem.find('span', class_=priceClass).text)
+            if price is None:
+                price = ''
+        except:
+            price = ''
+        try:
+            date = historyItem.find('span', class_=dateClass).text
+            if date is None:
+                date = ''
+        except:
+            date = ''
+        try:
+            agency = historyItem.find('span', class_=agencyClass).text
+            if agency is None:
+                agency = ''
+        except:
+            agency = ''
+        
+        newEvent = {'Slutpris': price, 'Såld eller borttagen': date, 'agency': agency}
+        events.append(newEvent)
+        
+    
+    return events
+        
 
 
-def getAttributesFromPage(shortLink):
+def getAppartmentsFromPage(shortLink):
     # Return a dictionary with the attributes of a house
+    dataToReturn = []
     data = {'link': shortLink}
     link = f'https://www.booli.se{shortLink}'
     response = requests.get(link)
@@ -193,7 +241,11 @@ def getAttributesFromPage(shortLink):
         except:
             pass
         try:
-            data.update(getGeneralInfo(soup))
+            for index, bostad in enumerate(getGeneralInfo(soup)):
+                newData = data.copy()
+                newData.update(bostad)
+                newData['link'] = str(index) + '-' + shortLink
+                dataToReturn.append(newData)
         except:
             pass
     elif response.status_code == 429:
@@ -203,11 +255,11 @@ def getAttributesFromPage(shortLink):
         except:
             pass
         time.sleep(timeToWait)
-        return getAttributesFromPage(shortLink)
+        return getAppartmentsFromPage(shortLink)
     else:
         print('Error: ', response.status_code)
 
-    return data
+    return dataToReturn
 
 
 if __name__ == "__main__":
