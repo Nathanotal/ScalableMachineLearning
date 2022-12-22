@@ -158,7 +158,9 @@ def getGeneralInfo(soup):
                 data[name] = uf.cleanAvgift(value)
             case 'Slutpris/m²':
                 data[name] = uf.cleanPriceSqm(value)
-            case 'Storlek' | 'Sista bud' | 'Tomtstorlek' | 'Upplåtelseform' | 'Sidvisningar' | 'Dagar som snart till salu' | 'Biarea' | 'Boendekostnad' | 'Kvadratmeterpris':
+            case 'Sista bud':
+                data['Slutpris'] = uf.cleanPrice(value)
+            case 'Storlek' | 'Tomtstorlek' | 'Upplåtelseform' | 'Sidvisningar' | 'Dagar som snart till salu' | 'Biarea' | 'Boendekostnad' | 'Kvadratmeterpris':
                 pass
             case _:
                 data[name] = value
