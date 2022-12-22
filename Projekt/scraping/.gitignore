@@ -1,7 +1,6 @@
 .conda
-*.txt
 *.exe
-.__pycache__
+__pycache__
 data/*.csv
 data/backup/*.csv
 
