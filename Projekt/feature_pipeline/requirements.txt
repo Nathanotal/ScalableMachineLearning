@@ -1,4 +1,5 @@
-hopsworks
+# hopsworks
 datasets
 pandas
 torch
+sklearn
