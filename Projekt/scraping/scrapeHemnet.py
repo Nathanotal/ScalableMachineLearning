@@ -25,12 +25,14 @@ def main():
         links = getAllLinks()
         uf.saveLinks(links)
 
-    getAndWirteData(links)
+    linksLeftToScrape = uf.getLinksWithoutData(links)
+
+    getAndWirteData(linksLeftToScrape)
     print('Done!')
 
 
 def getAndWirteData(links):
-    with open(f'{PATH}/data/apartmentData.csv', 'w', newline='', encoding='utf-8') as f:
+    with open(f'{PATH}/data/apartmentData.csv', 'a', newline='', encoding='utf-8') as f:
         # Make a writer which can handle nordic characters
         writer = csv.writer(f, delimiter=';', quotechar='"',
                             quoting=csv.QUOTE_MINIMAL)
