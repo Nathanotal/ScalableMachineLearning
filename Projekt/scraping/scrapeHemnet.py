@@ -11,12 +11,13 @@ PATH = os.path.dirname(os.path.abspath(__file__))
 HEADERS = ['link', 'area', 'streetName', 'number', 'sqm', 'rooms', 'Slutpris', 'Utropspris', 'Prisutveckling', 'Såld eller borttagen', 'Slutpris/m²', 'Dagar på Booli', 'Avgift', 'Bostadstyp', 'Driftskostnad', 'Våning', 'Byggår', 'BRF', 'brfLink', 'Energiklass']
 LOAD_DATA = True
 MAX_WORKERS = min(32, (os.cpu_count() or 1) + 4)
+LINK_SPLIT = 1
 
 def main():
     print('Initializing...')
     links = None
     if LOAD_DATA:
-        links = uf.loadLinks()
+        links = uf.loadLinks(LINK_SPLIT)
     else:
         input('Are you sure you want to scrape all data? Press enter to continue...')
         links = getAllLinks()
@@ -69,7 +70,6 @@ def getLinksFromSearchStadsDel(stadsDel):
                 pass                
     
     return houseLinks
-
 
 def getLinksFromSearchPage(link):
     response = requests.get(link)

@@ -88,8 +88,8 @@ def saveLinks(allLinks):
         for link in allLinks:
             f.write(link + '\n')
 
-def loadLinks():
-    with open(f'{PATH}/data/links.csv', 'r') as f:
+def loadLinks(fileNo):
+    with open(f'{PATH}/data/split/links_{fileNo}.csv', 'r') as f:
         allLinks = f.read().splitlines()
     return allLinks[1:]
 
