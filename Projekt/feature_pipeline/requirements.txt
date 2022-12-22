@@ -1,0 +1,4 @@
+hopsworks
+datasets
+pandas
+torch
