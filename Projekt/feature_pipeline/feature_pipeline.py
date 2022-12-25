@@ -14,6 +14,11 @@ PATH = os.path.dirname(os.path.abspath(__file__))
 def main():
     # downloadData()
     data = loadData()
+    print(data.head())
+    print(data.tail())
+    print(data.info())
+    print(data.describe())
+    
     dataset = prepareForWrite(data)
     
     # Inspect the dataset
@@ -36,8 +41,6 @@ def loadData(download=True):
     cleanApartmentDf = cleanData(apartmentDf)
     
     df = populateApartmentData(cleanApartmentDf, gdpDf, unemploymentDf, interestRateDf)
-    
-    # dataset = load_dataset('csv', data_files='combinedV1.csv')
     return df
 
 def cleanData(df): # TODO: Clean data
