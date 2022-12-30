@@ -71,6 +71,7 @@ def downloadData(dataset_api):
     downloaded_file_path = dataset_api.download(
         "sthlm_housing/train/dataset.arrow", local_path="dataset/train", overwrite=True)
 
+# This is irrelevant
 def voiceMethod(dataset):
     # Define and initializea data collator
     import torch
