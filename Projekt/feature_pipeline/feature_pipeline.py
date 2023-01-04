@@ -1,28 +1,30 @@
 # import hopsworks
-from datasets import load_dataset, DatasetDict, Dataset
+# from datasets import load_dataset, DatasetDict, Dataset
 import pandas as pd
 import os
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import train_test_split
+from geopy.geocoders import Nominatim
+EMAIL = 'pniiiink@gmail.com'
 
-
+LOCATOR = Nominatim(user_agent=EMAIL)
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 
 def main():
     # downloadData()
-    data = loadData()
+    data = loadData(False)
     print(data.head())
     print(data.tail())
     print(data.info())
     print(data.describe())
     
-    dataset = prepareForWrite(data)
+    # dataset = prepareForWrite(data)
     
     # Inspect the dataset
-    print(dataset)
+    # print(dataset)
     # uploadToHopsworks(project, dataset)
 
 
@@ -41,6 +43,8 @@ def loadData(download=True):
     cleanApartmentDf = cleanData(apartmentDf)
     
     df = populateApartmentData(cleanApartmentDf, gdpDf, unemploymentDf, interestRateDf)
+    df = addCoordinates(df)
+
     return df
 
 def cleanData(df): # TODO: Clean data
@@ -57,6 +61,8 @@ def cleanData(df): # TODO: Clean data
     
     # Drop all columns which are useless (Slutpris/m², Prisutveckling, Utropspris)
     df = df.drop(['energyClass', 'Slutpris/m²', 'Prisutveckling', 'Utropspris', 'Dagar på Booli', 'Bostadstyp'], axis=1)
+
+    df['streetName'] = df.apply(cleanAddress)
     
     # Set the null monthlyCost to 0
     df['monthlyCost'] = df['monthlyCost'].fillna(0)
@@ -106,6 +112,29 @@ def cleanFloor(x):
         return float(x)
     else:
         return float(x)
+
+
+def cleanAddress(x):
+    # Remove "-" from the street
+    x = ''.join(x.split('-'))
+    x.strip()
+    return x
+
+def addCoordinates(df):
+    print('Adding coordinates...')
+    df['latitude', 'longitude'] = df.apply(lambda x: getCoordinatesFromAddress(df['streetName'], df['number']), axis=1, result_type='expand') 
+    return df
+
+def getCoordinatesFromAddress(streetName, number):
+    address = f'{streetName} {number}, Stockholm, Sweden'
+    location = LOCATOR.geocode(address)
+
+    if location is None:
+        return (0, 0)
+    else:
+        return (location.latitude, location.longitude)
+
+    
 
 def inspectData(df):
     print(df.head())
@@ -173,14 +202,14 @@ def downloadData():
     # project = hopsworks.login()
     pass
 
-def prepareForWrite(df): # TODO: Likely remove
-    print('Preparing for write...')
-    # Convert the dataset to a DatasetDict
-    train, test = train_test_split(df, test_size=0.2)
-    train_dataset = Dataset.from_dict(train)
-    test_dataset = Dataset.from_dict(test)
-    dataset = DatasetDict({'train': train_dataset, 'val': test_dataset})
-    return dataset
+# def prepareForWrite(df): # TODO: Likely remove
+#     print('Preparing for write...')
+#     # Convert the dataset to a DatasetDict
+#     train, test = train_test_split(df, test_size=0.2)
+#     train_dataset = Dataset.from_dict(train)
+#     test_dataset = Dataset.from_dict(test)
+#     dataset = DatasetDict({'train': train_dataset, 'val': test_dataset})
+#     return dataset
 
 def uploadToHopsworks(project, dataset): # TODO: Make sthlm housing folders
     dataset.save_to_disk('dataset') # TODO: Understand how it is saved
