@@ -3,6 +3,7 @@ import requests
 import csv
 import os
 import re
+import pandas as pd
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 
@@ -105,7 +106,6 @@ def loadLinks(fileNo):
         allLinks = f.read().splitlines()
     return allLinks[1:]
 
-
 def writeToCsv(data, writer, headers):
     row = []
     for header in headers:
@@ -179,3 +179,8 @@ def getLinksWithoutData(links):
 
     return linksWithoutData
 # splitCSVIntoNFiles('links', 13)
+
+def loadData():
+    # Load all data from the csv files
+    df = pd.read_csv(f'{PATH}/data/apartmentData.csv', sep=';')
+    return df

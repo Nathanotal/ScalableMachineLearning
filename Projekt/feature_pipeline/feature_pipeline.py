@@ -6,10 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import train_test_split
-from geopy.geocoders import Nominatim
-EMAIL = 'pniiiink@gmail.com'
-
-LOCATOR = Nominatim(user_agent=EMAIL)
+from getCoords import getCoordinatesFromAddress
+from tqdm import tqdm
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 
@@ -20,8 +18,10 @@ def main():
     print(data.tail())
     print(data.info())
     print(data.describe())
-    
     # dataset = prepareForWrite(data)
+
+    # Save to csv
+    data.to_csv(f'{PATH}/data/features.csv', sep=';', index=False)
     
     # Inspect the dataset
     # print(dataset)
@@ -41,7 +41,6 @@ def loadData(download=True):
     interestRateDf = pd.read_csv(f'{PATH}/data/historicalInterest.csv', sep=';')
     
     cleanApartmentDf = cleanData(apartmentDf)
-    
     df = populateApartmentData(cleanApartmentDf, gdpDf, unemploymentDf, interestRateDf)
     df = addCoordinates(df)
 
@@ -61,8 +60,6 @@ def cleanData(df): # TODO: Clean data
     
     # Drop all columns which are useless (Slutpris/m², Prisutveckling, Utropspris)
     df = df.drop(['energyClass', 'Slutpris/m²', 'Prisutveckling', 'Utropspris', 'Dagar på Booli', 'Bostadstyp'], axis=1)
-
-    df['streetName'] = df.apply(cleanAddress)
     
     # Set the null monthlyCost to 0
     df['monthlyCost'] = df['monthlyCost'].fillna(0)
@@ -98,6 +95,8 @@ def cleanData(df): # TODO: Clean data
     # Drop all rows where the date is before 2012-01-01
     df = df.drop(df[df['soldDate'] < '2012-01-01'].index)
     
+    df['streetName'] = df['streetName'].apply(cleanAddress)
+
     # inspectData(df)
     percent = abs(int((len(df) - rowsBefore) / rowsBefore * 100))
     print(f'Rows removed: {percent}%')
@@ -113,28 +112,39 @@ def cleanFloor(x):
     else:
         return float(x)
 
-
 def cleanAddress(x):
     # Remove "-" from the street
     x = ''.join(x.split('-'))
+    # Remove all zero width spaces, non-breaking spaces and non-breaking hyphens
+    x = x.replace('\u200b', '')
+    x = x.replace('\u00a0', '')
+    x = x.replace('\u2011', '')
+    # Remove all soft hyphens
+    x = x.replace('\xad', '')
+    x = x.replace('\u200c', '')
+
     x.strip()
     return x
 
 def addCoordinates(df):
     print('Adding coordinates...')
-    df['latitude', 'longitude'] = df.apply(lambda x: getCoordinatesFromAddress(df['streetName'], df['number']), axis=1, result_type='expand') 
+    addrToCoords = {}
+    for row in tqdm(df.itertuples()):
+        # Use your own Nominatim server!!! Otherwise the throttling will be insane
+        coords = addrToCoords.get(row.streetName + str(row.number))
+
+        if coords is not None:
+            df.at[row.Index, 'lat'] = coords[0]
+            df.at[row.Index, 'lon'] = coords[1]
+            continue
+
+        lat, lon = getCoordinatesFromAddress(row.streetName, row.number)
+        df.at[row.Index, 'lat'] = lat
+        df.at[row.Index, 'lon'] = lon
+
+        addrToCoords[row.streetName + str(row.number)] = (lat, lon)
+
     return df
-
-def getCoordinatesFromAddress(streetName, number):
-    address = f'{streetName} {number}, Stockholm, Sweden'
-    location = LOCATOR.geocode(address)
-
-    if location is None:
-        return (0, 0)
-    else:
-        return (location.latitude, location.longitude)
-
-    
 
 def inspectData(df):
     print(df.head())
