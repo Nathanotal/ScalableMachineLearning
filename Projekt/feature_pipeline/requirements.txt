@@ -1,6 +1,10 @@
-# hopsworks
 datasets
 pandas
 torch
 sklearn
 geopy
+bs4
+requests
+tqdm
+hopsworks
+huggingface_hub

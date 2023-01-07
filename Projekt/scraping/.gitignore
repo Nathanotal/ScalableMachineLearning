@@ -1,5 +1,0 @@
-.conda
-*.exe
-__pycache__/
-data/backup/*.csv
-

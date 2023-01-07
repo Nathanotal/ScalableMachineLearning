@@ -1,2 +1,8 @@
-data/
 __pycache__/
+.conda
+*.exe
+data/backup
+data/extraData
+data/split
+concat/data
+scrapedData
