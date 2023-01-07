@@ -201,8 +201,7 @@ def loadData():
     df = pd.read_csv(f'{PATH}/data/apartmentData.csv', sep=';')
     return df
 
-def downloadData():
-    # Download the data from Hopsworks
+def downloadData(): # TODO: Fix
     ...
 
 def dropApartmets(df, linksWhichAreUpdated):

@@ -2,3 +2,5 @@ bs4
 requests
 tqdm
 hopsworks
+huggingface_hub
+datasets
