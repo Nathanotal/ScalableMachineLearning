@@ -8,6 +8,22 @@ import pandas as pd
 PATH = os.path.dirname(os.path.abspath(__file__))
 
 
+
+def firstDateLarger(date1, date2):
+    # Compare two dates in the format YYYY-MM-DD
+    # Return True if date1 is older (or the same) than date2
+    # Return False if date1 is newer than date2
+
+    # Split the dates into lists
+    date1 = date1.split('-')
+    date2 = date2.split('-')
+
+    for t1, t2 in zip(date1, date2):
+        if int(t1) < int(t2):
+            return False
+
+    return True
+
 def getNoResults(stadsDel):
     # Return the number of results for a search query
     response = requests.get(
@@ -184,3 +200,25 @@ def loadData():
     # Load all data from the csv files
     df = pd.read_csv(f'{PATH}/data/apartmentData.csv', sep=';')
     return df
+
+def downloadData():
+    # Download the data from Hopsworks
+    ...
+
+def dropApartmets(df, linksWhichAreUpdated):
+    # Drop all appartments with links which are updated
+    indexesToDrop = []
+    for index, row in df.iterrows():
+        link = row['link']
+        if link == 'link':
+            continue
+        # The link is the link after the first "-"
+        link = link.split('-')[1]
+
+        if link in linksWhichAreUpdated:
+            indexesToDrop.append(index)
+        
+    df = df.drop(indexesToDrop)
+
+    # Write the data to a csv file
+    df.to_csv(f'{PATH}/data/apartmentData.csv', sep=';', index=False) 

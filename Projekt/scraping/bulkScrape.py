@@ -35,11 +35,14 @@ def main():
 
 
 def getAndWirteData(links):
+    # If you want to run this in parralell, you need to run it through proxies as there is a strict rate limit
     with open(f'{PATH}/data/apartmentData.csv', 'a', newline='', encoding='utf-8') as f:
         # Make a writer which can handle nordic characters
         writer = csv.writer(f, delimiter=';', quotechar='"',
                             quoting=csv.QUOTE_MINIMAL)
-        writer.writerow(HEADERS)
+
+        if not LOAD_DATA:
+            writer.writerow(HEADERS) 
 
         # Write the data for each apratment
         print('Getting data from pages...')
@@ -59,7 +62,8 @@ def getAllLinks(date=None):
     for stadsDel in tqdm(stadsDelar):
         allLinks.extend(getLinksFromSearchStadsDel(stadsDel, date))
 
-    return allLinks
+    # Return only unique links
+    return list(set(allLinks))
 
 
 def getLinksFromSearchStadsDel(stadsDel, lastSoldDate):
@@ -84,15 +88,15 @@ def getLinksFromSearchStadsDel(stadsDel, lastSoldDate):
         for pageNo in range(noLoops):
             try:
                 link = f'https://www.booli.se/slutpriser/{stadsDel}?objectType=L%C3%A4genhet&page={pageNo+1}'
-                getLinksFromSearchPageAfterDate(link, lastSoldDate)
+                res = getLinksFromSearchPageAfterDate(link, lastSoldDate)
                 if res is not None:
                     houseLinks.extend(res)
                 else:
                     print('Err', res)
             except DatePassedException:
                 break
-            except:
-                print(f'Major error in {stadsDel} page {pageNo+1}')
+            # except:
+            #     print(f'Major error in {stadsDel} page {pageNo+1}')
 
 
     return houseLinks
@@ -100,11 +104,20 @@ def getLinksFromSearchStadsDel(stadsDel, lastSoldDate):
 def getLinksFromSearchPageAfterDate(link, date):
     # Overfetch a bit because I am lazy
     response = requests.get(link)
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # Find all elements with class "fWha_"
+    dateElements = soup.find_all('p', class_='fWha_')
 
     if response.status_code == 200:
-        # Check dates
-        ...
-        if False:
+        # If the date of the first element is larger than the latest date we have data for, stop
+        dateLessThanExists = False
+        for dateElement in dateElements:
+            if uf.firstDateLarger(dateElement.text, date):
+                dateLessThanExists = True
+                break
+
+        if not dateLessThanExists:
             raise DatePassedException
             
         return getHrefs(response)

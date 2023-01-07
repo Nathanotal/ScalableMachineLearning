@@ -1,13 +1,7 @@
-import csv
-import os
-import requests
-from tqdm import tqdm
-from concurrent import futures
-from bs4 import BeautifulSoup
 import utilityFunctions as uf
-import time
 import bulkScrape as bs
 
+# We overfetch a bit just to be sure we get all the new data
 def main():
     # Load the current raw data
     print('Loading data...')
@@ -15,17 +9,26 @@ def main():
     
     print('Checking for new data...')
     # Check the latest sold date
-    latestSoldDate = df['soldDate'].max()
+    # Drop the first row since it is the header
+    latestSoldDate = '2000-01-01'
+    for soldDate in df['Såld eller borttagen'][1:]:
+        if soldDate == 'Såld eller borttagen':
+            pass # The raw raw data is a bit messy
+        elif uf.firstDateLarger(soldDate, latestSoldDate):
+            latestSoldDate = soldDate
+        
+    print(latestSoldDate)
 
-    # Get all appartments that have been sold since the latest sold date
-    linksToScrape = getLinksSinceDate(latestSoldDate) # TODO
+    # Get all appartments that have been sold at and since the latest sold date (and some more)
+    linksToScrape = getLinksSinceDate(latestSoldDate)
 
-    # Make sure none of the links are already in the data
-    linksToScrape = uf.getLinksWithoutData(linksToScrape)
+    print(f'Found {len(linksToScrape)} potential new appartments. Scraping...')
 
-    print(f'Found {len(linksToScrape)} new appartments. Scraping...')
+    # Drop apartments which will get updated
+    uf.dropApartmets(df, linksToScrape)
+    
     # Scrape the new data
-    # bs.getAndWirteData(linksToScrape)
+    bs.getAndWirteData(linksToScrape)
 
 def getLinksSinceDate(latestSoldDate):
     links = bs.getAllLinks(latestSoldDate)   
