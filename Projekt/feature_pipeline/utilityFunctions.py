@@ -202,6 +202,11 @@ def loadData():
     df = pd.read_csv(f'{PATH}/data/apartmentData.csv', sep=';')
     return df
 
+def loadFeatures():
+    # Load all data from the csv files
+    df = pd.read_csv(f'{PATH}/data/features.csv', sep=';')
+    return df
+
 def downloadData(fileName): # TODO: Fix
     download(fileName)
 

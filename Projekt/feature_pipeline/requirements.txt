@@ -8,3 +8,5 @@ requests
 tqdm
 hopsworks
 huggingface_hub
+matplotlib
+seaborn
