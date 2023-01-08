@@ -1,3 +1,0 @@
-hopsworks
-huggingface-hub
-datasets

@@ -16,7 +16,6 @@ def main(apartmentDf):
     # Save to csv
     print('Saving features to csv...')
     data.to_csv(f'{PATH}/data/features.csv', sep=';', index=False)
-    
 
 
 def loadData(apartmentDf):
@@ -32,10 +31,57 @@ def loadData(apartmentDf):
     # A lot of records are dropped here, but if we don't do this our coordinate understanding will be off
     # df = dropZeroCoords(df) # Do this in the training script instead
 
+    # Normalize the data
+    df = normalizeData(df)
+
     return df
 
 def dropZeroCoords(df):
     return df[(df['lat'] != 0) | (df['lon'] != 0)]
+
+def normalizeData(df):
+    # We do this manually because we want the UI to be able to transform the input data the same way
+    featureToMinMax = {
+        'sqm': (10, 800),
+        'rooms': (1, 20),
+        'monthlyFee': (0, 60000),
+        'monthlyCost': (0, 20000),
+        'floor': (-3, 35),
+        'yearBuilt': (1850, 2023),
+        'lat': (58.8, 60.2),
+        'lon': (17.5, 19.1),
+        'gdp': (505.1, 630.14),
+        'unemployment': (6.36, 8.66),
+        'interestRate': (-0.5, 2.64),
+        'price': (1.5e5, 7e7),
+        'number': (0, 300),
+        'soldDate': (2010, 2025)
+    } # Extracted from the data
+
+    # Normalize select numerical values to a value between 0 and 1
+    print('Normalizing data...')
+    for feature, minMax in tqdm(featureToMinMax.items()):
+        min = minMax[0]
+        max = minMax[1]
+        if feature == 'soldDate':
+            df[feature] = df[feature].apply(lambda x: dateToFloat(x))
+
+        df[feature] = df[feature].apply(lambda x: normalize(x, min, max, feature))
+
+    return df
+
+def dateToFloat(date):
+    year, month, day = str(date).split('-')
+    day = day.split(' ')[0]
+    return int(year) + int(month) / 12 + int(day) / 365
+
+def normalize(x, minVal, maxVal, feature):
+    # Not fantastic, but it suffices
+    if feature in ['lat', 'lon'] and x == 0:
+        return 0
+
+    res = (x - minVal) / (maxVal - minVal)
+    return min(max(res, 0), 1)
 
 
 def cleanData(df): # TODO: Clean data
@@ -68,6 +114,9 @@ def cleanData(df): # TODO: Clean data
     
     # Where number is null, set it to 1
     df['number'] = df['number'].fillna(1)
+
+    # Remove all rows where number is above 300
+    df = df.drop(df[df['number'] > 300].index)
     
     # Where agency is null, set it to 'NoAgency'
     df['agency'] = df['agency'].fillna('NoAgency')

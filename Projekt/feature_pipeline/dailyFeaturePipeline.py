@@ -63,7 +63,6 @@ def addKnownCoordinates(rawData, addrToCoords, streetToCoords):
     return rawData
 
 
-
 if __name__ == '__main__':
     main()
 
