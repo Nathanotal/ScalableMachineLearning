@@ -10,31 +10,18 @@ from tqdm import tqdm
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 
-def main():
-    # downloadData()
-    data = loadData(False)
-    print(data.head())
-    print(data.tail())
-    print(data.info())
-    print(data.describe())
-    # dataset = prepareForWrite(data)
+def main(apartmentDf):
+    data = loadData(apartmentDf)
 
     # Save to csv
+    print('Saving features to csv...')
     data.to_csv(f'{PATH}/data/features.csv', sep=';', index=False)
     
-    # Inspect the dataset
-    # print(dataset)
-    # uploadToHopsworks(project, dataset)
 
 
-
-# Download / Load all data which we want to turn into features
-def loadData(download=True):
-    print('Loading data...')
-    if download:
-        downloadData()
-    # We likely want to load 4 separate csv files and concatenate them into a single DatasetDict
-    apartmentDf = pd.read_csv(f'{PATH}/data/apartmentData.csv', sep=';')
+def loadData(apartmentDf):
+    # Load 4 separate csv files and concatenate them into a single DatasetDict
+    print('Loading financial data...')
     gdpDf = pd.read_csv(f'{PATH}/data/historicalGDP.csv', sep=';')
     unemploymentDf = pd.read_csv(f'{PATH}/data/historicalUnemployment.csv', sep=';')
     interestRateDf = pd.read_csv(f'{PATH}/data/historicalInterest.csv', sep=';')
@@ -42,14 +29,23 @@ def loadData(download=True):
     cleanApartmentDf = cleanData(apartmentDf)
     df = populateApartmentData(cleanApartmentDf, gdpDf, unemploymentDf, interestRateDf)
     df = addCoordinates(df)
+    # A lot of records are dropped here, but if we don't do this our coordinate understanding will be off
+    # df = dropZeroCoords(df) # Do this in the training script instead
 
     return df
+
+def dropZeroCoords(df):
+    return df[(df['lat'] != 0) | (df['lon'] != 0)]
+
 
 def cleanData(df): # TODO: Clean data
     print('Cleaning data...')
     rowsBefore = len(df)
     # Set index to the link
     df = df.set_index('link')
+
+    # Drop all rows where there is no streetName (equals "Adresssaknas")
+    df = df[df['streetName'] != 'Adresssaknas']
     
     # Rename columns
     df = df.rename(columns={'Slutpris': 'price', 'Såld eller borttagen': 'soldDate', 'Avgift': 'monthlyFee', 'Driftskostnad': 'monthlyCost', 'Våning': 'floor', 'Byggår': 'yearBuilt', 'BRF': 'brf', 'Energiklass': 'energyClass'})
@@ -70,8 +66,8 @@ def cleanData(df): # TODO: Clean data
     # Fill the null values in the brf column with 'NoBRF'
     df['brf'] = df['brf'].fillna('NoBRF')
     
-    # Where number is null, set it to 0
-    df['number'] = df['number'].fillna(0)
+    # Where number is null, set it to 1
+    df['number'] = df['number'].fillna(1)
     
     # Where agency is null, set it to 'NoAgency'
     df['agency'] = df['agency'].fillna('NoAgency')
@@ -126,10 +122,12 @@ def cleanAddress(x):
     return x
 
 def addCoordinates(df):
-    print('Adding coordinates...')
-    addrToCoords = {}
-    for row in tqdm(df.itertuples()):
-        # Use your own Nominatim server!!! Otherwise the throttling will be insane
+    print('Adding missing coordinates...')
+    # Extract the rows where the coordinates are missing (equal to 1000.0)
+    missingCoordsDf = df[(df['lat'] == 1000.0) | (df['lon'] == 1000.0)]
+    addrToCoords = {} # Amazing
+    for row in tqdm(missingCoordsDf.itertuples()):
+        # Use your own Nominatim server!!! The throttling of the public one is extremely stric
         coords = addrToCoords.get(row.streetName + str(row.number))
 
         if coords is not None:
@@ -142,7 +140,7 @@ def addCoordinates(df):
         df.at[row.Index, 'lon'] = lon
 
         addrToCoords[row.streetName + str(row.number)] = (lat, lon)
-
+    
     return df
 
 def inspectData(df):
@@ -176,7 +174,6 @@ def populateApartmentData(aptDf, gdpDf, unemploymentDf, interestRateDf):
     return aptDf
     
 def interpolateTime(df):
-    # Interpolate the GDP data so we have values for every month
     df['date'] = pd.to_datetime(df['date'])
     df = df.set_index('date')
     df = df.resample('MS').mean()
@@ -197,73 +194,10 @@ def getValueFromTime(datetime, dataDf):
             datetime = datetime.replace(month=1)
             datetime = datetime.replace(year=datetime.year + 1)
             
-        # Print the first and last date in the dataDf
-
 def fixChange(df):
     # Set change to be the difference between the current and previous price
     df['change'] = df['value'].diff()
     # If the change is Nan set it to 0
     df['change'] = df['change'].fillna(0)
+    
     return df
-
-def downloadData():
-    # 993jhbhPecCt6fS5.gvlZik4edWefbGbguZVwrES34rJrBQuaUBpHcJapmRlD6UseqKirncAUSNBOCTBq
-    # project = hopsworks.login()
-    pass
-
-# def prepareForWrite(df): # TODO: Likely remove
-#     print('Preparing for write...')
-#     # Convert the dataset to a DatasetDict
-#     train, test = train_test_split(df, test_size=0.2)
-#     train_dataset = Dataset.from_dict(train)
-#     test_dataset = Dataset.from_dict(test)
-#     dataset = DatasetDict({'train': train_dataset, 'val': test_dataset})
-#     return dataset
-
-def uploadToHopsworks(project, dataset): # TODO: Make sthlm housing folders
-    dataset.save_to_disk('dataset') # TODO: Understand how it is saved
-    
-    # Upload dataset to Hopsworks
-    dataset_api = project.get_dataset_api()
-
-    # Upload Dataset Dict
-    path1 = dataset_api.upload(
-        local_path = f'{PATH}/dataset/dataset_dict.json', 
-        upload_path = '/Projects/nathanotal/sthlm_housing/', overwrite=True)
-
-    # Upload train state
-    path2 = dataset_api.upload(
-        local_path = f'{PATH}/dataset/train/state.json', 
-        upload_path = '/Projects/nathanotal/sthlm_housing/train/', overwrite=True)
-
-    # Upload train info
-    path3 = dataset_api.upload(
-        local_path = f'{PATH}/dataset/train/dataset_info.json', 
-        upload_path = '/Projects/nathanotal/sthlm_housing/train/', overwrite=True)
-
-    # Upload test state
-    path4 = dataset_api.upload(
-        local_path = f'{PATH}/dataset/test/state.json', 
-        upload_path = '/Projects/nathanotal/sthlm_housing/test/', overwrite=True)
-
-    # Upload test info
-    path5 = dataset_api.upload(
-        local_path = f'{PATH}/dataset/test/dataset_info.json', 
-        upload_path = '/Projects/nathanotal/sthlm_housing/test/', overwrite=True)
-
-    # Upload test data
-    path6 = dataset_api.upload(
-        local_path = f'{PATH}/dataset/test/dataset.arrow', 
-        upload_path = '/Projects/nathanotal/sthlm_housing/test/', overwrite=True)
-
-    # # Upload train data
-    path7 = dataset_api.upload(
-        local_path = f'{PATH}/dataset/train/dataset.arrow', 
-        upload_path = '/Projects/nathanotal/sthlm_housing/train/', overwrite=True)
-
-    # Print the paths to the uploaded files
-    print(path1, path2, path3, path4, path5, path6, path7)
-    
-    
-if __name__ == '__main__':
-    main()
