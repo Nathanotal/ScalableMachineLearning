@@ -3,7 +3,6 @@ import os
 from geopy.geocoders import Nominatim
 import pandas as pd
 
-PATH = os.path.dirname(os.path.abspath(__file__))
 HOST_ADDRESS = '165.227.162.37'
 HOST_PORT = '8080'
 EMAIL = ''
