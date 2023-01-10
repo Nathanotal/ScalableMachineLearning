@@ -6,8 +6,7 @@ PATH = os.path.dirname(os.path.abspath(__file__))
 HW_PATH = "/Projects/nathanotal/housingValuation/"
 LOCAL_PATH = os.path.join(PATH, "data")
 
-HW = 'OWXnoeaQ1Bg6I0IE.EgaQo2HmubMIzfChCahCK6sQVLs4vyrhj2ODWHcYr0RN9f1gqac2dJjn8p2fXwcQ' # Don't do this lol
-project = hopsworks.login(api_key_value=HW)
+project = hopsworks.login()
 DATASET_API = project.get_dataset_api()
 
 def download(fileName):

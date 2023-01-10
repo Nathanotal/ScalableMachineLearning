@@ -3,9 +3,9 @@ import os
 from geopy.geocoders import Nominatim
 import pandas as pd
 
-HOST_ADDRESS = '165.227.162.37'
+HOST_ADDRESS = '165.227.162.37' # Use your own API, I will shut this down now as it is expensive
 HOST_PORT = '8080'
-EMAIL = ''
+EMAIL = '' 
 DOMAIN = HOST_ADDRESS + ':' + HOST_PORT
 LOCATOR = Nominatim(user_agent=EMAIL, domain=DOMAIN, scheme='http', timeout=10)
 
