@@ -11,22 +11,22 @@ The feature pipeline downloads the data collected by the scraping pipeline and c
 
 A lot of operations are performed on the data. For example, several outliers are excluded. Data with null values are either dropped or filled in. Several columns are parsed to make it possible for machine learning models to accept. The date is also converted to a numerical feature. Coordinates are also added to the datapoints which do not have them. The dataset is subsequently normalized and uploaded to Hopsworks.
 
-#### Coordinates 🗺
+### Coordinates 🗺
 Importantly, the dataset from the website which was scraped did not include coordinates. As a result these had to be interpolated from the address of the apartment. This proved rather difficult. It would have cost ~$1000 to have identified the coordinates using the Google Maps API. We thus turned to OpenStreetMaps. We downloaded the dataset, however, it was really complicated to make a sufficient SQL query. Thus, we tried to use Nominatim (based on OpenStreetMaps), however they have a rate limit of 1 request/second and 2500 requests/day. Finally, we arrived at our solution, which entailed hosting our own Nominatim API. This API was first hosted on a private rpi, however, the dataset was too large and we had to migrate to a DigitalOcean droplet. With our own API we were able to bulk fetch all the data we needed!
 
 ## Training pipeline 🛠
 
  
 
-**PREPARATION** 
+### Preparation 
 1. Install requirements.
 2. Control Colab GPU and CPU setup.
 3. Login to Hopsworks.
 
-**DATASET**
+### Dataset
 1.  Download full dataset from Hopsworks and save it to Colab.
 
-**XGBOOST REGRESSOR** 🌲
+### XGBoost Regressor 🌲
 1. Load full dataset.
 2. Assign correct datatypes to the variables.
 3. Drop categorical features (if training the non categorical version).
@@ -46,7 +46,7 @@ Importantly, the dataset from the website which was scraped did not include coor
 13. Download model from Hopsworks Model Registry.
 
 
-**AUTOGLUON TABULAR PREDICTOR** 🧠
+### AutoGluon tabular predictor 🧠
 1. Load full dataset and assign correct datatypes.
 2. Separate the features (X) and the label (Y).
 3. Split full dataset (*seed = 7*) into a training set (80%) and test set (20%).
@@ -72,7 +72,7 @@ The purpose for using two models is to enable users to use whichever model they 
 
 Moreover, we reasoned that it would be interesting to explore and use a popular AutoML-approach in the project since it is a new and exciting field of research.
 
-**Final performance evaluation of the trained models and their capabilities:**
+### Final performance evaluation of the trained models and their capabilities:
 
 | Models    |   MAPE    | Avg. Execution Time | Can handle categorical features <br/> in Hugginface 🤗 UI |
 |:----------|:---------:|:-------------------:|:---------------------------------------------------------:|
