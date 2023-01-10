@@ -78,20 +78,23 @@ Moreover, we reasoned that it would be interesting to explore and use a popular 
 | XGBOOST   | 9,7680 %  |       Instant       |                             ❌                            |
 | AutoGluon | 9,5450 %  |    ~ 10 seconds     |                             ✔️                            | 
 
-**Note:** _The average execution time_ is the average time it takes for a model to perform a prediction on one (1) datapoint, as observed in the HuggingFace 🤗 UI.
+#### Note 1:
+The _average execution time_ is the average time it takes for a model to perform a prediction on one (1) datapoint, as observed in the HuggingFace 🤗 UI.
 
-**Note:** An XGBOOST Regressor model is typically able to handle categorical features if it has access to a GPU.
+#### Note 2:
+An XGBOOST Regressor model is typically able to handle categorical features if it has access to a GPU.
 Since a free tier version of Huggingface 🤗 Space is used for this project no GPU is available – only a CPU. 
-Thus, the used XGBOOST model used, although able to handle categorical features, is not able to handle these in the UI. In practice,  
-On the contrary, the AutoGluon model is able to process categorical features while running on a CPU, and will thus use the feature "StreetName" in its predictions, whereas the XGBOOST model will exclude this.  
+Thus, the used XGBOOST model was trained on the same data as the AutoGluon model, but without the categorical features.
+On the contrary, the AutoGluon model is able to process categorical features while running on a CPU, and will thus use the features "streetName" and "agency" in its predictions, whereas the XGBOOST model will exclude these.
 
 #### XGBoost 🌲
 XGBOOST is a library of gradient boosting algorithms. 
 The XGBoostRegressor was used with the following settings
 because they enable the usage of categorical features: `(tree_method="gpu_hist", enable_categorical=True)` ([reference](https://xgboost.readthedocs.io/en/stable/tutorials/categorical.html)).
 GridSearch was used to optimize the hyperparameters of the model.
-The best model was trained on the training dataset and saved to Hopsworks Model Registry.
-**Note**: We made two versions of the XGBoost model, one which uses categorical features and one which did not. This is because our UI could not run the categorical feature version as it requires a GPU.
+The best models were saved to Hopsworks Model Registry (one trained with and one without categorical features, see [Note 2](#Note-2) for more information regarding this).
+
+**Note**: The UI could not run the categorical feature version as it requires a GPU. Thus, we use the non categorical model in the UI.
 
 
 
