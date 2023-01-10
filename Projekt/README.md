@@ -59,8 +59,6 @@ Importantly, the dataset from the website which was scraped did not include coor
 7. Upload model to Hopsworks Model Registry.
 8. Download model from Hopsworks Model Registry.
 
----
-
 
 
 
