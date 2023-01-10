@@ -29,20 +29,21 @@ Importantly, the dataset from the website which was scraped did not include coor
 **XGBOOST REGRESSOR** 🌲
 1. Load full dataset.
 2. Assign correct datatypes to the variables.
-3. Separate the features (X) and the label (Y).
-4. Split full dataset (*seed = 7*) into a training set (80%) and test set (20%).
+3. Drop categorical features (if training the non categorical version).
+4. Separate the features (X) and the label (Y).
+5. Split full dataset (seed = 7) into a training set (80%) and test set (20%).
 
 
-5. Initialize XGBOOST Regressor model.
-6. Optimize hyperparameters with GridSearch.
-7. Train the XGBBOOST model on the training data.
-8. Let the model predict on the testing data.
-9. Calculate performance metrics: *MAE* and *MAPE*.
-10. Plot model's predictions vs. original values.
+6. Initialize XGBOOST Regressor model.
+7. Optimize hyperparameters with GridSearch.
+8. Train the XGBBOOST model on the training data.
+9. Let the model predict on the testing data.
+10. Calculate performance metrics: MAE and MAPE.
+11. Plot model's predictions vs. original values.
 
 
-11. Upload model to Hopsworks Model Registry.
-12. Download model from Hopsworks Model Registry.
+12. Upload model to Hopsworks Model Registry.
+13. Download model from Hopsworks Model Registry.
 
 
 **AUTOGLUON TABULAR PREDICTOR** 🧠
