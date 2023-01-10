@@ -15,6 +15,11 @@ A lot of operations are performed on the data. For example, several outliers are
 Importantly, the dataset from the website which was scraped did not include coordinates. As a result these had to be interpolated from the address of the apartment. This proved rather difficult. It would have cost ~$1000 to have identified the coordinates using the Google Maps API. We thus turned to OpenStreetMaps. We downloaded the dataset, however, it was really complicated to make a sufficient SQL query. Thus, we tried to use Nominatim (based on OpenStreetMaps), however they have a rate limit of 1 request/second and 2500 requests/day. Finally, we arrived at our solution, which entailed hosting our own Nominatim API. This API was first hosted on a private rpi, however, the dataset was too large and we had to migrate to a DigitalOcean droplet. With our own API we were able to bulk fetch all the data we needed!
 
 ## Training pipeline
+## Training pipeline
+
+
+ 
+
 **PREPARATION**
 1. Install requirements.
 2. Control Colab GPU and CPU setup.
@@ -62,28 +67,36 @@ Importantly, the dataset from the website which was scraped did not include coor
 
 
 ### Models:
-Two models were implemented in the UI; XGBOOST Regressor and Autogluon Tabular Predictor.
+Two models were implemented in the UI; an XGBOOST Regressor and an Autogluon Tabular Predictor.
 Both models were trained and evaluated on the same data splits (same seed) and the same performance metrics were used to evaluate their performances.
 The purpose for using two models is to enable users to use whichever model they prefer: 
-* _AutoGluon Tabular Predictor_, which is a model that is more accurate but requires more time to predict.
+* _AutoGluon Tabular Predictor_, which is a model that is more accurate but requires more time to predict, it also handles categorical data better.
 * _XGBOOST Regressor_, which is a model that is less accurate but requires less time to predict.
 
 Moreover, we reasoned that it would be interesting to explore and use a popular AutoML-approach in the project since it is a new and exciting field of research.
 
-**Final performance evaluation of the trained models:**
+**Final performance evaluation of the trained models and their capabilities:**
 
-| Models         |   MAPE    | Avg. Execution Time |
-|:---------------|:---------:|:-------------------:|
-| XGBOOST        | 9,7680 %  |       Instant       |
-| AutoGluon      | 9,5450 %  |    ~ 10 seconds     | 
+| Models    |   MAPE    | Avg. Execution Time | Can handle categorical features <br/> in Hugginface 🤗 UI |
+|:----------|:---------:|:-------------------:|:---------------------------------------------------------:|
+| XGBOOST   | 9,7680 %  |       Instant       |                             ❌                            |
+| AutoGluon | 9,5450 %  |    ~ 10 seconds     |                            ✔️                             | 
 
 **Note:** _The average execution time_ is the average time it takes for a model to perform a prediction on one (1) datapoint, as observed in the HuggingFace 🤗 UI.
+
+**Note:** An XGBOOST Regressor model is typically able to handle categorical features if it has access to a GPU.
+Since a free tier version of Huggingface 🤗 Space is used for this project no GPU is available – only a CPU. 
+Thus, the used XGBOOST model used, although able to handle categorical features, is not able to handle these in the UI. In practice,  
+On the contrary, the AutoGluon model is able to process categorical features while running on a CPU, and will thus use the feature "StreetName" in its predictions, whereas the XGBOOST model will exclude this.  
+
 #### XGBoost 🌲
 XGBOOST is a library of gradient boosting algorithms. 
 The XGBoostRegressor was used with the following settings
 because they enable the usage of categorical features: `(tree_method="gpu_hist", enable_categorical=True)` ([reference](https://xgboost.readthedocs.io/en/stable/tutorials/categorical.html)).
 GridSearch was used to optimize the hyperparameters of the model.
 The best model was trained on the training dataset and saved to Hopsworks Model Registry.
+**Note**: We made two versions of the XGBoost model, one which uses categorical features and one which did not. This is because our UI could not run the categorical feature version as it requires a GPU.
+
 
 
 
@@ -94,7 +107,6 @@ The training and validation of the model is carried out in a single phase which 
 After training (and validating) the model, it was saved to the Hopsworks Model Registry.
 
 
----
 
-## Inference pipeline (UI)
-Blablabla
+## Inference pipeline ([UI](https://huggingface.co/spaces/Nathanotal/stockholmHousingValuation))
+The inference pipeline is a UI where you can get valuations of apartments in Stockholm by entering the features of the apartment. The UI gets the lat/lon from the address and interpolates several extra features e.g. historical or expected GDP. As a GPU was required to use categorical features for XGBoost, and our huggingface space only has a CPU, we had to make versions of the XGBoost model which did not use categorical data.
