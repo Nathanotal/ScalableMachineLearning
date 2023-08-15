@@ -31,13 +31,17 @@ def getNoResults(stadsDel):
         f'https://www.booli.se/slutpriser/{stadsDel}?objectType=L%C3%A4genhet&page=1')
     soup = BeautifulSoup(response.text, 'html.parser')
 
-    # Get the span with class "p3oVj"
-    noApts = soup.find('span', class_='p3oVj')
+    # Get div where class is only mt-4
+    div = soup.find('div', class_='mt-4')
+
+    # Get span with class font-semibold in div
+    noApts = div.find('span', class_='font-semibold')
 
     # Get the text from the span
     no = noApts.text
 
     # Parse the text to an integer
+    no = no.replace('\xa0', ' ')
     noInt = int(no.replace(' ', ''))
 
     return noInt
@@ -215,16 +219,11 @@ def uploadData(fileName):
 
 def dropApartmets(df, linksWhichAreUpdated):
     # Drop all appartments with links which are updated
-    indexesToDrop = []
-    for index, row in df.iterrows():
-        link = row['link']
-        if link == 'link':
-            continue
-        # The link is the link after the first "-"
-        link = link.split('-')[1]
+    # Create a series that identifies the links after the first "-"
+    links = df['link'].str.split('-').str[1]
 
-        if link in linksWhichAreUpdated:
-            indexesToDrop.append(index)
+    # Identify the indexes where the link is not equal to 'link' and is in linksWhichAreUpdated
+    indexesToDrop = df.index[(df['link'] != 'link') & (links.isin(linksWhichAreUpdated))].tolist()
         
     df = df.drop(indexesToDrop)
 

@@ -1,15 +1,16 @@
 # import utilityFunctions as uf
-import hopsworks
+# import hopsworks
 import os
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 HW_PATH = "/Projects/nathanotal/housingValuation/"
 LOCAL_PATH = os.path.join(PATH, "data")
 
-project = hopsworks.login()
-DATASET_API = project.get_dataset_api()
+# project = hopsworks.login()
+# DATASET_API = project.get_dataset_api()
 
 def download(fileName):
+    return
     # Download data from Hopsworks
     downloaded_file_path = DATASET_API.download(
         HW_PATH + '/' + fileName, 
@@ -18,6 +19,7 @@ def download(fileName):
 
 
 def upload(fileName):
+    return
     path1 = DATASET_API.upload(
         local_path = LOCAL_PATH + '/' + fileName, 
         upload_path = HW_PATH, overwrite=True)

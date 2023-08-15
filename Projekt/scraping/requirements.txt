@@ -1,12 +1,12 @@
 datasets
 pandas
 torch
-sklearn
+# sklearn
 geopy
 bs4
 requests
 tqdm
-hopsworks
+# hopsworks
 huggingface_hub
 matplotlib
 seaborn

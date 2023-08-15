@@ -60,7 +60,13 @@ def getAllLinks(date=None):
 
     print('Getting links to apartments...')
     for stadsDel in tqdm(stadsDelar):
-        allLinks.extend(getLinksFromSearchStadsDel(stadsDel, date))
+        succsess = False
+        while not succsess:
+            try:
+                allLinks.extend(getLinksFromSearchStadsDel(stadsDel, date))
+                succsess = True
+            except:
+                pass
 
     # Return only unique links
     return list(set(allLinks))
@@ -107,7 +113,7 @@ def getLinksFromSearchPageAfterDate(link, date):
     soup = BeautifulSoup(response.text, 'html.parser')
 
     # Find all elements with class "fWha_"
-    dateElements = soup.find_all('p', class_='fWha_')
+    dateElements = soup.find_all('span', class_='flex-none text-sm text-bui-color-middle-dark ml-3')
 
     if response.status_code == 200:
         # If the date of the first element is larger than the latest date we have data for, stop
@@ -138,7 +144,7 @@ def getHrefs(response):
     soup = BeautifulSoup(response.text, 'html.parser')
 
     # Find all links with class "_3xhWw"
-    links = soup.find_all('a', class_='_3xhWw')
+    links = soup.find_all('a', class_='expanded-link no-underline hover:underline')
 
     # Get the href attribute from each link
     return [link.get('href') for link in links]
@@ -231,16 +237,16 @@ def getGeneralInfo(soup):
                 
     
     # Get all other events
-    for index, event in enumerate(getHistory(soup)):
-        newData = data.copy()
-        newData.update(event)
-        if index > 0:
-            newData['Utropspris'] = ''
-            newData['Prisutveckling'] = ''
+    # for index, event in enumerate(getHistory(soup)):
+    #     newData = data.copy()
+    #     newData.update(event)
+    #     if index > 0:
+    #         newData['Utropspris'] = ''
+    #         newData['Prisutveckling'] = ''
         
-        dataToReturn.append(newData)
+    #     dataToReturn.append(newData)
 
-    return dataToReturn
+    return [data]
 
 def getHistory(soup):
     historyItemClass = '_10hNQ DfWRI'
